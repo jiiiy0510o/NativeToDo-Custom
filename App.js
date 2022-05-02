@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { theme } from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -16,9 +16,11 @@ export default function App() {
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (toDo) => setText(toDo);
+
   const saveToDos = async (toSave) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   };
+
   const loadToDos = async () => {
     const s = await AsyncStorage.getItem(STORAGE_KEY);
     setToDos(JSON.parse(s));
@@ -35,15 +37,33 @@ export default function App() {
     }
   };
 
+  const deleteToDo = async (key) => {
+    Alert.alert("경고", "삭제하시겠습니까?", [
+      {
+        text: "취소",
+      },
+      {
+        text: "삭제",
+        onPress: () => {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveToDos(newToDos);
+        },
+      },
+    ]);
+    return;
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
         <TouchableOpacity onPress={work}>
-          <Text style={{ ...styles.btnText, color: working ? "white" : theme.grey }}>Work</Text>
+          <Text style={{ ...styles.btnText, color: working ? theme.point : theme.grey }}>할 일</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={travel}>
-          <Text style={{ ...styles.btnText, color: !working ? "white" : theme.grey }}>Travel</Text>
+          <Text style={{ ...styles.btnText, color: !working ? theme.point : theme.grey }}>반복 할 일</Text>
         </TouchableOpacity>
       </View>
       <TextInput
@@ -51,13 +71,16 @@ export default function App() {
         onSubmitEditing={addToDo}
         onChangeText={onChangeText}
         value={text}
-        placeholder={working ? "할 일을 입력하세요" : "여행 갈 목적지는?"}
+        placeholder={working ? "오늘 할 일을 입력하세요" : "반복 할 일을 입력해주세요"}
         style={styles.input}
       />
       <ScrollView>
         {Object.keys(toDos).map((key) =>
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
+              <TouchableOpacity onPress={() => deleteToDo(key)}>
+                <Text style={styles.check}>▶</Text>
+              </TouchableOpacity>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
             </View>
           ) : null
@@ -74,31 +97,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    justifyContent: "space-between",
+    justifyContent: "space-around",
     flexDirection: "row",
     marginTop: 100,
+    paddingVertical: 12,
   },
   btnText: {
     color: "white",
-    fontSize: 42,
+    fontSize: 32,
   },
   input: {
     backgroundColor: "white",
-    paddingVertical: 6,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
     marginVertical: 20,
     fontSize: 15,
+    borderBottomColor: theme.point,
+    borderBottomWidth: 3,
   },
   toDo: {
-    backgroundColor: theme.toDoBg,
-    marginBottom: 16,
-    paddingVertical: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 26,
-    borderRadius: 22,
   },
   toDoText: {
-    color: "white",
+    paddingVertical: 3,
+    color: "#333",
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  check: {
     fontSize: 16,
+    paddingVertical: 18,
+    paddingRight: 16,
+    color: theme.point,
   },
 });

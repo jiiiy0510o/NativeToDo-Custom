@@ -1,5 +1,5 @@
 export const theme = {
-  bg: "black",
-  grey: "#3A3D40",
-  toDoBg: "#2a2a2a",
+  bg: "#ffffff",
+  grey: "#9a9a9a",
+  point: "#FACD34",
 };
