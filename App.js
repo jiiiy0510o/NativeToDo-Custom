@@ -3,17 +3,19 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
 import { theme } from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Entypo } from "@expo/vector-icons";
 
-const STORAGE_KEY = "@toDos";
+const STORAGE_KEY = "STORAGE_KEY";
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+
   useEffect(() => {
     loadToDos();
   }, []);
-  const travel = () => setWorking(false);
+  const custom = () => setWorking(false);
   const work = () => setWorking(true);
   const onChangeText = (toDo) => setText(toDo);
 
@@ -23,7 +25,9 @@ export default function App() {
 
   const loadToDos = async () => {
     const s = await AsyncStorage.getItem(STORAGE_KEY);
-    setToDos(JSON.parse(s));
+    if (s) {
+      setToDos(JSON.parse(s));
+    }
   };
 
   const addToDo = async () => {
@@ -62,7 +66,7 @@ export default function App() {
         <TouchableOpacity onPress={work}>
           <Text style={{ ...styles.btnText, color: working ? theme.point : theme.grey }}>할 일</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={travel}>
+        <TouchableOpacity onPress={custom}>
           <Text style={{ ...styles.btnText, color: !working ? theme.point : theme.grey }}>반복 할 일</Text>
         </TouchableOpacity>
       </View>
@@ -78,10 +82,12 @@ export default function App() {
         {Object.keys(toDos).map((key) =>
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
-              <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <Text style={styles.check}>▶</Text>
-              </TouchableOpacity>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <View style={styles.icons}>
+                <TouchableOpacity onPress={() => deleteToDo(key)}>
+                  <Entypo name="circle-with-cross" size={24} color={theme.point} />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null
         )}
@@ -119,8 +125,9 @@ const styles = StyleSheet.create({
   toDo: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     paddingHorizontal: 26,
+    paddingVertical: 10,
   },
   toDoText: {
     paddingVertical: 3,
@@ -128,10 +135,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "600",
   },
-  check: {
-    fontSize: 16,
-    paddingVertical: 18,
-    paddingRight: 16,
-    color: theme.point,
+  icons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 20,
   },
 });
